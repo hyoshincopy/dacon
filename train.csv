@@ -1,0 +1,8 @@
+file_name,SMILES
+train_0.png,CC(=O)OC(CC(=O)[O-])C[N+](C)(C)C
+train_1.png,CC(=O)OC(CC(=O)O)C[N+](C)(C)C
+train_2.png,O=C(O)C1=CC=CC(O)C1O
+train_3.png,CC(O)CN
+train_4.png,NCC(=O)COP(=O)(O)O
+train_5.png,O=[N+]([O-])c1ccc(Cl)c([N+](=O)[O-])c1
+train_6.png,CCn1cnc2c(N)ncnc21
