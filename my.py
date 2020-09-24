@@ -1,4 +1,5 @@
 from sklearn.utils import shuffle
+import tensorflow as tf
 import numpy as np
 data_base_path = 'data'
 
@@ -29,5 +30,13 @@ img_name_vector = np.array(img_name_vector[:num_examples])
 img_name_vector = img_name_vector[::2]
 train_captions = train_captions[::2]
 
+#! 학습에 사용하는 SMILES의 길이는 34이하로 샘플링 된 상태 (근데 왜 하는지는 모르겠음)
 def calc_max_length(tensor):
     return max(len(t) for t in tensor)
+max_length = calc_max_length(train_captions)
+
+tokenizer = tf.keras.preprocessing.text.Tokenizer(lower=False, char_level=True)
+tokenizer.fit_on_texts(train_captions)
+top_k = len(tokenizer.word_index)
+train_seqs = tokenizer.texts_to_sequences(train_captions)
+cap_vector = tf.keras.preprocessing.sequence.pad_sequences(train_seqs, padding='post')
