@@ -1,6 +1,7 @@
 from sklearn.utils import shuffle
 import tensorflow as tf
 import numpy as np
+from sklearn.model_selection import train_test_split
 data_base_path = 'data'
 
 with open('train.csv', 'r') as csv_file:
@@ -27,16 +28,28 @@ train_captions = np.array(train_captions[:num_examples])
 img_name_vector = np.array(img_name_vector[:num_examples])
 
 #! 데이터를 두 칸씩 띄어서 저장함(아마도 속도때문?) ex) 0 1 2 3 4 가 아닌 0 2 4 만 저장
-img_name_vector = img_name_vector[::2]
-train_captions = train_captions[::2]
+# img_name_vector = img_name_vector[::2]
+# train_captions = train_captions[::2]
 
-#! 학습에 사용하는 SMILES의 길이는 34이하로 샘플링 된 상태 (근데 왜 하는지는 모르겠음)
+#! 학습에 사용하는 SMILES의 길이는 40이하로 샘플링 된 상태 (근데 왜 하는지는 모르겠음)
 def calc_max_length(tensor):
     return max(len(t) for t in tensor)
 max_length = calc_max_length(train_captions)
 
+#! tokenizer 를 통해 원소기호와 숫자를 mapping 한다. 
+#! ex) (<)-(9) (C)-(1)
 tokenizer = tf.keras.preprocessing.text.Tokenizer(lower=False, char_level=True)
 tokenizer.fit_on_texts(train_captions)
 top_k = len(tokenizer.word_index)
 train_seqs = tokenizer.texts_to_sequences(train_captions)
 cap_vector = tf.keras.preprocessing.sequence.pad_sequences(train_seqs, padding='post')
+
+
+#! mol_train 에는 분자식이 들어있고 (학습 데이터)
+#! mol_val 에는 분자식이 들어있고 (유효성 테스트 데이터)
+#! cap_train 에는 tokenizer 된 숫자로 이루어진 리스트가 들어있고(학습데이터)
+#! cap_val 에는 tokenizer 된 숫자로 이루어진 리스트가 들어있고(유효성 테스트 데이터)
+mol_train, mol_val, cap_train, cap_val = train_test_split(train_captions, cap_vector, test_size=0.2, random_state=42)
+len(mol_train), len(cap_train), len(mol_val), len(cap_val)
+
+
