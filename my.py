@@ -1,6 +1,7 @@
 from sklearn.utils import shuffle
 import tensorflow as tf
 import numpy as np
+import rdkit
 from sklearn.model_selection import train_test_split
 data_base_path = 'data'
 
@@ -52,4 +53,49 @@ cap_vector = tf.keras.preprocessing.sequence.pad_sequences(train_seqs, padding='
 mol_train, mol_val, cap_train, cap_val = train_test_split(train_captions, cap_vector, test_size=0.2, random_state=42)
 len(mol_train), len(cap_train), len(mol_val), len(cap_val)
 
+#! 하이퍼 파라미터와 학습에 필요한 변수들 설정 
+BATCH_SIZE = 128
+BUFFER_SIZE = 100
+embedding_dim = 256 # Original: 512
+units = 1024
+vocab_size = top_k + 1
+num_steps = len(mol_train) # BATCH_SIZE
+features_shape = 2048
+attention_features_shape = 64
+EPOCHS = 50
+learning_rate = 1e-3
+"".dec
+#! 데이터셋 정의 함수
+#! Chem.MolFromSmiles를 통해 	ClC1=CC=CC=C1 에서 Clc1ccccc1 로 바뀐다.
+#! 77번째와 79번재는 뭘 하는지 모르겠음
+def map_func(mol_str, cap):
+    mol_str = mol_str.decode('utf-8')
+    chem_mol = Chem.MolFromSmiles(mol_str[1:-1])
+    img = Draw.MolToImage(chem_mol, size=(300,300))
+    img = np.array(img)
+    ### Fix color issue
+    img[:,:,(2,1,0)] = img[:,:,(0,1,2)]
+    # img = tf.io.read_file(image_path)
+    img = tf.dtypes.cast(img, tf.float32)
+#     img = tf.image.resize(img, (300, 300))
+    return img, cap
 
+def prep_func(image, cap):
+    result_image = tf.keras.applications.inception_v3.preprocess_input(image)
+    return result_image, cap
+
+dataset = tf.data.Dataset.from_tensor_slices((img_name_train, cap_train))
+dataset = dataset.map(lambda item1, item2: tf.numpy_function(map_func, [item1, item2], [tf.float32, tf.int32]), num_parallel_calls=tf.data.experimental.AUTOTUNE)
+dataset = dataset.shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
+dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+
+
+
+
+dataset_val = tf.data.Dataset.from_tensor_slices((img_name_val, cap_val))
+dataset_val = dataset_val.map(lambda item1, item2: tf.numpy_function(map_func, [item1, item2], [tf.float32, tf.int32]), num_parallel_calls=tf.data.experimental.AUTOTUNE)
+dataset_val = dataset_val.batch(BATCH_SIZE)
+dataset_val = dataset_val.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+
+
+rdkit.Chem.MolFromSmiles('111')
